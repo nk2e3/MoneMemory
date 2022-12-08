@@ -40,6 +40,7 @@ public class GameFragment extends Fragment {
     String[][] isCorrectS;
     private int firstCard;
     boolean flag;
+    int fragScore = 1;
     private int secondCard;
     private int g = 1;
 
@@ -72,6 +73,8 @@ public class GameFragment extends Fragment {
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
+        //TextView textview = (TextView)getActivity().findViewById(R.id.scoreText);
+        //textview.setText("SCORE: " + Integer.toString(fragScore));
         super.onCreate(savedInstanceState);
         if (getArguments() != null) {
             mParam1 = getArguments().getString(ARG_PARAM1);
@@ -153,9 +156,8 @@ public class GameFragment extends Fragment {
                 im[m][n].setTag(Integer.toString(gridImageValues[m][n]));
                 int finalM = m;
                 int finalN = n;
-
+                //int fs = fragScore;
                 im[m][n].setOnClickListener(new View.OnClickListener() {
-
                     @Override
                     public void onClick(View view) {
 
@@ -188,9 +190,11 @@ public class GameFragment extends Fragment {
                                 isCorrectS[finalM][finalN] = "true";
                                 firstCard = 0;
                                 secondCard = 1;
+                                //fragScore += 2;
+
                             } else {
                                 eq = "!eq";
-
+                                //fragScore -= 1;
                                 Handler handler = new Handler();
                                 handler.postDelayed(new Runnable() {
                                     @Override
@@ -202,13 +206,20 @@ public class GameFragment extends Fragment {
 
                                     }
                                 }, 1000);
+
                             }
 
                         }
                         //disable buttons until timer is done...
-
+                        //TextView textview = (TextView)getActivity().findViewById(R.id.scoreText);
+                        //textview.setText("SCORE: " + Integer.toString(fragScore));
                         g++;
+                        if(fragScore == 0) {
+                            revealCards(false);
+                            //textview.setText("SCORE: " + Integer.toString(fragScore));
+                        }
                     }
+
                 });
             }
         }
@@ -235,11 +246,14 @@ public class GameFragment extends Fragment {
         //return inflater.inflate(R.layout.fragment_game, container, false);
      }
 
-    public void revealCards() {
+    public void revealCards(boolean show) {
         for(int m = 0; m < m_max; m++) {
             for(int n = 0; n < n_max; n++) {
-                im[m][n].setImageResource(gridImageValues[m][n]);
+                if(show) {
+                    im[m][n].setImageResource(gridImageValues[m][n]);
+                }
                 im[m][n].setEnabled(false);
+
             }
         }
     }

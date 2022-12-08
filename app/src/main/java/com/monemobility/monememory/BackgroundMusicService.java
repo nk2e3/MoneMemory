@@ -54,7 +54,7 @@ public class BackgroundMusicService extends Service {
         //if(!mediaPlayer.isPlaying()) {
             mediaPlayer.start();
            // Log.d("mylog", "Starting playing");
-            mediaPlayer.isLooping();
+            mediaPlayer.setLooping(true);
         //} else {
 
         //}

@@ -1,6 +1,9 @@
 package com.monemobility.monememory;
 
+import android.util.Log;
 import android.widget.ImageView;
+
+import java.util.Arrays;
 
 public class GameLogic {
     /*Given a number of cards, this function returns the corresponding grid dimensions as a one-
@@ -133,5 +136,41 @@ public class GameLogic {
         }
         return complete;
     }
+
+
+    public static boolean getSol(String[][] array) {
+        boolean[][] solution = new boolean[array[0].length][array[1].length];
+
+        boolean[][] answerKey = new boolean[array[0].length][array[1].length];
+
+
+        for(int m = 0; m < array[0].length; m++) {
+            for(int n = 0; n < array[1].length; n++) {
+
+                Log.i("", " " + array[m][n] + " ");
+
+                if(array[m][n].equals("true"))
+                    solution[m][n] = true;
+                else
+                    solution[m][n] = false;
+            }
+        }
+
+        for(int m = 0; m < array[0].length; m++) {
+            for(int n = 0; n < array[1].length; n++) {
+                answerKey[m][n] = true;
+            }
+        }
+
+        boolean returnVar;
+        if(Arrays.deepEquals(answerKey, solution)) {
+            returnVar = true;
+        } else {
+            returnVar = false;
+        }
+
+        return returnVar;
+    }
+
 
 }

@@ -71,13 +71,20 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View view) {
                 gameFragment = (GameFragment)getSupportFragmentManager().findFragmentById(R.id.game_container);
-                gameFragment.revealCards();
+                gameFragment.revealCards(true);
 
             }
         });
 
+        Bundle bundle = new Bundle();
+        bundle.putString("edttext", Integer.toString(4));
+        // set Fragmentclass Arguments
+        gameFragment = new GameFragment();
+        gameFragment.setArguments(bundle);
 
-
+        getSupportFragmentManager().beginTransaction()
+                .replace(R.id.game_container, gameFragment)
+                .addToBackStack(GameFragment.class.getName()).commit();
 
     }
     @Override
@@ -108,9 +115,6 @@ public class MainActivity extends AppCompatActivity {
             sendBroadcast(intent);
         }
     }
-
-
-
 
     private void createDialog() {
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
