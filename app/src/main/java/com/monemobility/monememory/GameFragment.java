@@ -11,6 +11,7 @@ import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
 
 import android.os.Handler;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -18,6 +19,8 @@ import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
+
+import java.util.Arrays;
 
 /**
  * A simple {@link Fragment} subclass.
@@ -33,15 +36,15 @@ public class GameFragment extends Fragment {
     private int numOfCards;
     private int m_max, n_max;
     private ImageView[][] im;
-
+    int firstCard, secondCard;
     int fcx1, fcy1, fcx2, fcy2;
     int[][] gridImageValues;
     boolean[][] isCorrect;
     String[][] isCorrectS;
-    private int firstCard;
+    boolean gameOver = false;
+
     boolean flag;
     int fragScore = 1;
-    private int secondCard;
     private int g = 1;
 
 
@@ -96,7 +99,8 @@ public class GameFragment extends Fragment {
                 for(int n = 0; n < y; n++) {
                     im[m][n] = new ImageView(getActivity());
                     if(savedState[m][n].equals("true")) {
-                        im[m][n].setImageResource(a[m][n]);
+                        im[m][n].setVisibility(View.INVISIBLE);
+                        im[m][n].setEnabled(false);
                     }
                 }
             }
@@ -160,9 +164,9 @@ public class GameFragment extends Fragment {
                 im[m][n].setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View view) {
-
                         im[finalM][finalN].setImageResource(gridImageValues[finalM][finalN]);
-
+                        im[finalM][finalN].setEnabled(false);
+                        isCorrectS[finalM][finalN] = "true";
 
                         int x;
                         if(g % 2 == 0) {
@@ -181,45 +185,53 @@ public class GameFragment extends Fragment {
 
                         if(g%2 == 0) {
                             disableButtons();
-                            if((secondCard == firstCard) && !((finalM == fcx2) && (finalN == fcy2))) {
-                                eq = "eq";
+                            if ((secondCard == firstCard) && !((finalM == fcx2) && (finalN == fcy2))) {
+                                fragScore += 2;
+                                //im[fcx2][fcy2].setImageResource(gridImageValues[fcx2][fcy2]);
                                 im[fcx2][fcy2].setImageResource(gridImageValues[fcx2][fcy2]);
-                                im[fcx2][fcy2].setEnabled(false);
-                                isCorrectS[fcx2][fcy2] = "true";
-                                im[finalM][finalN].setEnabled(false);
+                                im[finalM][finalN].setImageResource(gridImageValues[finalM][finalN]);
                                 isCorrectS[finalM][finalN] = "true";
-                                firstCard = 0;
-                                secondCard = 1;
-                                //fragScore += 2;
+                                isCorrectS[fcx2][fcy2] = "true";
+                                im[fcx2][fcy2].setEnabled(false);
+                                im[finalM][finalN].setEnabled(false);
 
-                            } else {
-                                eq = "!eq";
-                                //fragScore -= 1;
                                 Handler handler = new Handler();
                                 handler.postDelayed(new Runnable() {
                                     @Override
                                     public void run() {
+                                        im[fcx2][fcy2].setImageResource(gridImageValues[fcx2][fcy2]);
+                                        im[finalM][finalN].setImageResource(gridImageValues[finalM][finalN]);
+                                        isCorrectS[finalM][finalN] = "true";
+                                        isCorrectS[fcx2][fcy2] = "true";
+                                        im[fcx2][fcy2].setVisibility(View.INVISIBLE);
+                                        im[finalM][finalN].setVisibility(View.INVISIBLE);
+                                        checkWinState();
+                                    }
+                                }, 1000);
+                            } else if (secondCard != firstCard && !((finalM == fcx2) && (finalN == fcy2))) {
+                                fragScore -= 1;
+
+                                Log.i("STATE","!eq");
+                                //fragScore -= 1;
+                                Handler handler = new Handler();
+
+                                handler.postDelayed(new Runnable() {
+                                    @Override
+                                    public void run() {
+                                        isCorrectS[finalM][finalN] = "false";
+                                        isCorrectS[fcx2][fcy2] = "false";
                                         im[finalM][finalN].setImageResource(R.drawable.ic_go);
                                         im[fcx2][fcy2].setImageResource(R.drawable.ic_go);
                                         im[fcx2][fcy2].setEnabled(true);
+                                        im[finalM][finalN].setEnabled(true);
                                         //disable buttons until timer is done...
-
                                     }
                                 }, 1000);
-
                             }
-
                         }
-                        //disable buttons until timer is done...
-                        //TextView textview = (TextView)getActivity().findViewById(R.id.scoreText);
-                        //textview.setText("SCORE: " + Integer.toString(fragScore));
+
                         g++;
-                        if(fragScore == 0) {
-                            revealCards(false);
-                            //textview.setText("SCORE: " + Integer.toString(fragScore));
-                        }
                     }
-
                 });
             }
         }
@@ -252,10 +264,14 @@ public class GameFragment extends Fragment {
                 if(show) {
                     im[m][n].setImageResource(gridImageValues[m][n]);
                 }
+                isCorrectS[m][n] = "false";
                 im[m][n].setEnabled(false);
 
             }
         }
+        gameOver = true;
+        TextView textview = (TextView) getActivity().findViewById(R.id.scoreText);
+        textview.setText("GAME OVER");
     }
 
     @Override
@@ -266,6 +282,24 @@ public class GameFragment extends Fragment {
         outState.putInt("m", m_max);
         outState.putInt("n", n_max);
         outState.putInt("z", numOfCards);
+
+    }
+
+
+    private void checkWinState() {
+        String[][] answerKey = new String[m_max][n_max];
+        for(int m = 0; m < m_max; m++) {
+            for(int n = 0; n < n_max; n++) {
+                answerKey[m][n] = "true";
+            }
+        }
+        String[][] solution = new String[m_max][n_max];
+
+        if(Arrays.deepEquals(answerKey,isCorrectS)) {
+            TextView textview = (TextView) getActivity().findViewById(R.id.scoreText);
+            textview.setText("WIN");
+            gameOver = true;
+        }
     }
 
     private void disableButtons() {
@@ -281,15 +315,13 @@ public class GameFragment extends Fragment {
             public void run() {
                 for(int i = 0; i < m_max; i++) {
                     for(int k = 0; k < n_max; k++) {
-                        im[i][k].setEnabled(true);
-
-                    }
-                }
-                for(int i = 0; i < m_max; i++) {
-                    for(int k = 0; k < n_max; k++) {
                         if(isCorrectS.equals("true")) {
                             im[i][k].setEnabled(false);
+                        } else {
+                            im[i][k].setEnabled(true);
                         }
+
+
                     }
                 }
             }

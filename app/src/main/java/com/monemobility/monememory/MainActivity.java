@@ -1,5 +1,6 @@
 package com.monemobility.monememory;
 
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 
 import android.app.AlertDialog;
@@ -21,9 +22,10 @@ public class MainActivity extends AppCompatActivity {
 
     Button startButton;
     Button quitButton;
+    Button scoreButton;
     SeekBar difficultyBar;
     GameFragment gameFragment;
-    public int playerScore;
+    public int playerScore = 1;
     Boolean musicState = true;
     ImageView[][] IVArray= new ImageView[length][width];
 
@@ -76,6 +78,15 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
+        scoreButton = this.findViewById(R.id.scoreText);
+        scoreButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+
+            }
+        });
+
+        /*
         Bundle bundle = new Bundle();
         bundle.putString("edttext", Integer.toString(4));
         // set Fragmentclass Arguments
@@ -85,7 +96,7 @@ public class MainActivity extends AppCompatActivity {
         getSupportFragmentManager().beginTransaction()
                 .replace(R.id.game_container, gameFragment)
                 .addToBackStack(GameFragment.class.getName()).commit();
-
+*/
     }
     @Override
     protected void onDestroy() {
@@ -116,6 +127,19 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+    protected void onSaveInstanceState(@NonNull Bundle outState) {
+        super.onSaveInstanceState(outState);
+        String savedText = (String) scoreButton.getText();
+        outState.putString("s", savedText);
+    }
+
+    protected void onRestoreInstanceState(@NonNull Bundle savedInstanceState) {
+        super.onSaveInstanceState(savedInstanceState);
+        String savedText = (String) scoreButton.getText();
+        String x = savedInstanceState.getString("s");
+        scoreButton.setText(x);
+    }
+
     private void createDialog() {
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
         LayoutInflater inflater = this.getLayoutInflater();
@@ -141,6 +165,8 @@ public class MainActivity extends AppCompatActivity {
         builder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
+                playerScore = 1;
+                scoreButton.setText("SCORE: " + playerScore);
                 Bundle bundle = new Bundle();
                 bundle.putString("edttext", Integer.toString(difficulty));
                 // set Fragmentclass Arguments
@@ -179,7 +205,8 @@ public class MainActivity extends AppCompatActivity {
             playerScore += 2;
         else
             playerScore -=1;
-        startButton.setText("SCORE: " + playerScore);
+
+        scoreButton.setText("SCORE: " + playerScore);
     }
 
 
