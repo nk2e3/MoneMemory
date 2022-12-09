@@ -35,14 +35,15 @@ public class GameFragment extends Fragment {
     private static final String ARG_PARAM2 = "param2";
     private int numOfCards;
     private int m_max, n_max;
+    boolean gameOver;
     private ImageView[][] im;
     int firstCard, secondCard;
     int fcx1, fcy1, fcx2, fcy2;
     int[][] gridImageValues;
     boolean[][] isCorrect;
     String[][] isCorrectS;
-    boolean gameOver = false;
-
+    TextView scoreText;
+    boolean revealed;
     boolean flag;
     int fragScore = 1;
     private int g = 1;
@@ -78,6 +79,7 @@ public class GameFragment extends Fragment {
     public void onCreate(Bundle savedInstanceState) {
         //TextView textview = (TextView)getActivity().findViewById(R.id.scoreText);
         //textview.setText("SCORE: " + Integer.toString(fragScore));
+        scoreText = (TextView) getActivity().findViewById(R.id.scoreText);
         super.onCreate(savedInstanceState);
         if (getArguments() != null) {
             mParam1 = getArguments().getString(ARG_PARAM1);
@@ -85,16 +87,18 @@ public class GameFragment extends Fragment {
         }
 
         if (savedInstanceState != null) {
-            flag = true;
             int x = savedInstanceState.getInt("m");
             int y = savedInstanceState.getInt("n");
             int z = savedInstanceState.getInt("z");
+            revealed = savedInstanceState.getBoolean("r");
+
             DifficultyUtilities.displayDifficultyToast(getContext(), getView(), z);
             im = new ImageView[x][y];
             String[][] savedState;
             savedState = (String[][]) savedInstanceState.getSerializable("answered");
             isCorrectS = savedState;
             int[][] a = GameLogic.assignImageResources(z);
+
             for(int m = 0; m < x; m++) {
                 for(int n = 0; n < y; n++) {
                     im[m][n] = new ImageView(getActivity());
@@ -104,8 +108,6 @@ public class GameFragment extends Fragment {
                     }
                 }
             }
-        } else {
-            flag = false;
         }
     }
 
@@ -151,11 +153,18 @@ public class GameFragment extends Fragment {
                     im[m][n].setImageResource(R.drawable.ic_go);
                 } else {
                     //Toast.makeText(getContext(),isCorrectS[0][0],Toast.LENGTH_SHORT).show();
-                    if(isCorrectS[m][n].equals("true")) {
+                    if(revealed) {
                         im[m][n].setImageResource(gridImageValues[m][n]);
-                    } else if(isCorrectS[m][n].equals("false")) {
-                        im[m][n].setImageResource(R.drawable.ic_go);
+                        im[m][n].setEnabled(false);
+                    } else {
+                        if(isCorrectS[m][n].equals("true")) {
+                            im[m][n].setImageResource(gridImageValues[m][n]);
+                        } else if(isCorrectS[m][n].equals("false")) {
+                            im[m][n].setImageResource(R.drawable.ic_go);
+                        }
                     }
+
+
                 }
                 im[m][n].setTag(Integer.toString(gridImageValues[m][n]));
                 int finalM = m;
@@ -166,7 +175,7 @@ public class GameFragment extends Fragment {
                     public void onClick(View view) {
                         im[finalM][finalN].setImageResource(gridImageValues[finalM][finalN]);
                         im[finalM][finalN].setEnabled(false);
-                        isCorrectS[finalM][finalN] = "true";
+                        //isCorrectS[finalM][finalN] = "true";
 
                         int x;
                         if(g % 2 == 0) {
@@ -210,25 +219,31 @@ public class GameFragment extends Fragment {
                                 }, 1000);
                             } else if (secondCard != firstCard && !((finalM == fcx2) && (finalN == fcy2))) {
                                 fragScore -= 1;
+                                if(fragScore == 0) {
+                                    revealCards(false);
+                                } else {
+                                    Log.i("STATE","!eq");
+                                    Handler handler = new Handler();
 
-                                Log.i("STATE","!eq");
-                                //fragScore -= 1;
-                                Handler handler = new Handler();
+                                    handler.postDelayed(new Runnable() {
+                                        @Override
+                                        public void run() {
+                                            isCorrectS[finalM][finalN] = "false";
+                                            isCorrectS[fcx2][fcy2] = "false";
+                                            im[finalM][finalN].setImageResource(R.drawable.ic_go);
+                                            im[fcx2][fcy2].setImageResource(R.drawable.ic_go);
+                                            im[fcx2][fcy2].setEnabled(true);
+                                            im[finalM][finalN].setEnabled(true);
+                                            //disable buttons until timer is done...
+                                        }
+                                    }, 1000);
+                                    scoreText = (TextView) getActivity().findViewById(R.id.scoreText);
+                                    scoreText.setText("SCORE: " + fragScore);
+                                }
 
-                                handler.postDelayed(new Runnable() {
-                                    @Override
-                                    public void run() {
-                                        isCorrectS[finalM][finalN] = "false";
-                                        isCorrectS[fcx2][fcy2] = "false";
-                                        im[finalM][finalN].setImageResource(R.drawable.ic_go);
-                                        im[fcx2][fcy2].setImageResource(R.drawable.ic_go);
-                                        im[fcx2][fcy2].setEnabled(true);
-                                        im[finalM][finalN].setEnabled(true);
-                                        //disable buttons until timer is done...
-                                    }
-                                }, 1000);
                             }
                         }
+
 
                         g++;
                     }
@@ -259,19 +274,31 @@ public class GameFragment extends Fragment {
      }
 
     public void revealCards(boolean show) {
-        for(int m = 0; m < m_max; m++) {
-            for(int n = 0; n < n_max; n++) {
-                if(show) {
-                    im[m][n].setImageResource(gridImageValues[m][n]);
-                }
-                isCorrectS[m][n] = "false";
-                im[m][n].setEnabled(false);
-
-            }
-        }
+        revealed = true;
         gameOver = true;
-        TextView textview = (TextView) getActivity().findViewById(R.id.scoreText);
-        textview.setText("GAME OVER");
+        scoreText = (TextView) getActivity().findViewById(R.id.scoreText);
+        scoreText.setText("GAME OVER");
+        Handler handler = new Handler();
+
+        handler.postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                for(int m = 0; m < m_max; m++) {
+                    for(int n = 0; n < n_max; n++) {
+                        if(show) {
+                            im[m][n].setVisibility(View.VISIBLE);
+                            im[m][n].setImageResource(gridImageValues[m][n]);
+                        }
+                        isCorrectS[m][n] = "false";
+                        im[m][n].setEnabled(false);
+
+                    }
+                }
+            }
+        }, 1000);
+
+
+
     }
 
     @Override
@@ -282,7 +309,7 @@ public class GameFragment extends Fragment {
         outState.putInt("m", m_max);
         outState.putInt("n", n_max);
         outState.putInt("z", numOfCards);
-
+        outState.putBoolean("r", revealed);
     }
 
 
@@ -300,6 +327,9 @@ public class GameFragment extends Fragment {
             textview.setText("WIN");
             gameOver = true;
         }
+
+        //BELOW IS WHERE THE CODE FOR SCORE STORAGE CAN GO...
+
     }
 
     private void disableButtons() {
@@ -327,5 +357,6 @@ public class GameFragment extends Fragment {
             }
         },1000);// set time as per your requirement
     }
+
 }
 
