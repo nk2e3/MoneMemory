@@ -26,7 +26,7 @@ public class MainActivity extends AppCompatActivity {
     SeekBar difficultyBar;
     GameFragment gameFragment;
     public int playerScore = 1;
-    Boolean musicState = true;
+    Boolean musicState;
     ImageView[][] IVArray= new ImageView[length][width];
 
     Button muteButton;
@@ -38,7 +38,7 @@ public class MainActivity extends AppCompatActivity {
         getSupportActionBar().hide();
         startButton = (Button) findViewById(R.id.start_button);
         Intent intent = new Intent(getApplicationContext(), BackgroundMusicService.class);
-        startService(intent);
+
 
         startButton = this.findViewById(R.id.start_button);
         startButton.setOnClickListener(new View.OnClickListener() {
@@ -49,6 +49,10 @@ public class MainActivity extends AppCompatActivity {
         });
 
         muteButton = this.findViewById(R.id.mute_button);
+        if(musicState==null) {
+            musicState = true;
+            startService(intent);
+        }
         muteButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -143,15 +147,21 @@ public class MainActivity extends AppCompatActivity {
 
     protected void onSaveInstanceState(@NonNull Bundle outState) {
         super.onSaveInstanceState(outState);
-        String savedText = (String) scoreButton.getText();
-        outState.putString("s", savedText);
+        String savedTextScore = (String) scoreButton.getText();
+        String savedTextMutePlay = (String) muteButton.getText();
+        outState.putString("s", savedTextScore);
+        outState.putString("mp", savedTextMutePlay);
+        outState.putBoolean("m", musicState);
     }
 
     protected void onRestoreInstanceState(@NonNull Bundle savedInstanceState) {
         super.onSaveInstanceState(savedInstanceState);
         String savedText = (String) scoreButton.getText();
         String x = savedInstanceState.getString("s");
+        String y = savedInstanceState.getString("mp");
+        musicState = savedInstanceState.getBoolean("m");
         scoreButton.setText(x);
+        muteButton.setText(y);
     }
 
     private void createDialog() {
