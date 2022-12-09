@@ -3,8 +3,8 @@
  
          Copyright (C) 2022 Noah King <ncking@cpp.edu> 
  
-Get mone. This software is a public license to do whatever you want, 
-including making mone. 
+  Get mone. This is a public license to do whatever you want 
+  including making mone. 
  
-0. Do whatever you want with the code.
-1. Make mone, if you want to.
+  0. Do whatever you want with the code.
+  1. Make mone, if you want to.
