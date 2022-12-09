@@ -86,6 +86,7 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
+
         /*
         Bundle bundle = new Bundle();
         bundle.putString("edttext", Integer.toString(4));
@@ -96,7 +97,20 @@ public class MainActivity extends AppCompatActivity {
         getSupportFragmentManager().beginTransaction()
                 .replace(R.id.game_container, gameFragment)
                 .addToBackStack(GameFragment.class.getName()).commit();
+
 */
+        if (savedInstanceState == null) {
+            Bundle bundle = new Bundle();
+            bundle.putString("edttext", Integer.toString(4));
+            // set Fragmentclass Arguments
+            gameFragment = new GameFragment();
+            gameFragment.setArguments(bundle);
+            getSupportFragmentManager().beginTransaction()
+                    .replace(R.id.game_container, gameFragment)
+                    .addToBackStack(GameFragment.class.getName()).commit();
+
+        }
+
     }
     @Override
     protected void onDestroy() {

@@ -80,6 +80,7 @@ public class GameFragment extends Fragment {
         //TextView textview = (TextView)getActivity().findViewById(R.id.scoreText);
         //textview.setText("SCORE: " + Integer.toString(fragScore));
         scoreText = (TextView) getActivity().findViewById(R.id.scoreText);
+
         super.onCreate(savedInstanceState);
         if (getArguments() != null) {
             mParam1 = getArguments().getString(ARG_PARAM1);
