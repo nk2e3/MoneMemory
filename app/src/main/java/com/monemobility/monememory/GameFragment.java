@@ -196,7 +196,8 @@ public class GameFragment extends Fragment {
                             disableButtons();
                             if ((secondCard == firstCard) && !((finalM == fcx2) && (finalN == fcy2))) {
                                 fragScore += 2;
-                                //im[fcx2][fcy2].setImageResource(gridImageValues[fcx2][fcy2]);
+                                scoreText = (TextView) getActivity().findViewById(R.id.scoreText);
+                                scoreText.setText("SCORE: " + fragScore);
                                 im[fcx2][fcy2].setImageResource(gridImageValues[fcx2][fcy2]);
                                 im[finalM][finalN].setImageResource(gridImageValues[finalM][finalN]);
                                 isCorrectS[finalM][finalN] = "true";

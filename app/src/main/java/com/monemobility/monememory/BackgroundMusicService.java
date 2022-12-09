@@ -34,7 +34,7 @@ public class BackgroundMusicService extends Service {
     public void onCreate() {
         super.onCreate();
         Log.d("mylog", "On Create Service");
-        mediaPlayer = MediaPlayer.create(this, R.raw.power);
+        mediaPlayer = MediaPlayer.create(this, R.raw.type_beat);
 
         IntentFilter filter = new IntentFilter();
         filter.addAction("musicPause");
