@@ -324,15 +324,35 @@ public class GameFragment extends Fragment {
             }
         }
         String[][] solution = new String[m_max][n_max];
-
+        int finalScore = 0;
         if(Arrays.deepEquals(answerKey,isCorrectS)) {
             TextView textview = (TextView) getActivity().findViewById(R.id.scoreText);
             textview.setText("WIN");
             gameOver = true;
+            finalScore = fragScore;
+            
+            AlertDialog.Builder alert = new AlertDialog.Builder(getContext());
+            alert.setMessage("Please enter your initials");
+            final EditText input = new EditText(getContext());
+            alert.setView(input);
+            alert.setPositiveButton("Add", new DialogInterface.OnClickListener() {
+                public void onClick(DialogInterface dialog, int whichButton) {
+                    userName = input.getText().toString();
+                }
+            });
+            alert.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+                public void onClick(DialogInterface dialog, int whichButton) {
+                    dialog.cancel();
+                }
+            });
+            alert.show();
         }
 
         //BELOW IS WHERE THE CODE FOR SCORE STORAGE CAN GO...
-
+        SharedPreferences prefs = getContext().getSharedPreferences("myPrefsKey", Context.MODE_PRIVATE);
+        SharedPreferences.Editor editor = prefs.edit();
+        editor.putInt(userName, finalScore);
+        editor.apply();
     }
 
     private void disableButtons() {
