@@ -98,6 +98,8 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View view) {
                 SharedPreferences prefs = getSharedPreferences("myPrefsKey", Context.MODE_PRIVATE);
+                
+                //All this junk is supposed to sort the SharedPreferences stuff by value, but seemingly doesn't work.
                 TreeMap<String, ?> keys = new TreeMap<String, Object>(prefs.getAll());
                 List<Pair<Object, String>> sortedByValue = new LinkedList<Pair<Object,String>>();
                 for (Map.Entry<String, ?> entry : keys.entrySet()) {
@@ -116,10 +118,14 @@ public class MainActivity extends AppCompatActivity {
                 for (Pair<Object, String> pair : sortedByValue) {
                     Log.i("map values", pair.first + "/" + pair.second);
                 }
+                
+                //Need to change so that it only gets the top three highest scores.
                 Map<String, ?> allEntries = prefs.getAll();
                 for (Map.Entry<String, ?> entry : allEntries.entrySet()) {
                     output += entry.getKey() + "\t\t..........\t\t" + entry.getValue().toString() + "\n";
                 }
+                
+                //Bug where the most recently added score keeps getting added to the AlertDialog whenever scoreButton is clicked.
                 AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(MainActivity.this);
                 alertDialogBuilder.setMessage("TOP SCORES:\n" + output);
                 AlertDialog alertDialog = alertDialogBuilder.create();
