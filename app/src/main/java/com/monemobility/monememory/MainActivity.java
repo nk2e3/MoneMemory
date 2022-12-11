@@ -84,9 +84,36 @@ public class MainActivity extends AppCompatActivity {
 
         scoreButton = this.findViewById(R.id.scoreText);
         scoreButton.setOnClickListener(new View.OnClickListener() {
+            String output = "";
             @Override
             public void onClick(View view) {
-
+                SharedPreferences prefs = getSharedPreferences("myPrefsKey", Context.MODE_PRIVATE);
+                TreeMap<String, ?> keys = new TreeMap<String, Object>(prefs.getAll());
+                List<Pair<Object, String>> sortedByValue = new LinkedList<Pair<Object,String>>();
+                for (Map.Entry<String, ?> entry : keys.entrySet()) {
+                    Pair<Object, String> e = new Pair<Object, String>(entry.getValue(), entry.getKey());
+                    sortedByValue.add(e);
+                }
+                Collections.sort(sortedByValue, new Comparator<Pair<Object, String>>() {
+                    public int compare(Pair<Object, String> lhs, Pair<Object, String> rhs) {
+                        String sls = String.valueOf(lhs.first);
+                        String srs = String.valueOf(rhs.first);
+                        int res = sls.compareTo(srs);
+                        // Sort on value first, key second
+                        return res == 0 ? lhs.second.compareTo(rhs.second) : res;
+                    }
+                });
+                for (Pair<Object, String> pair : sortedByValue) {
+                    Log.i("map values", pair.first + "/" + pair.second);
+                }
+                Map<String, ?> allEntries = prefs.getAll();
+                for (Map.Entry<String, ?> entry : allEntries.entrySet()) {
+                    output += entry.getKey() + "\t\t..........\t\t" + entry.getValue().toString() + "\n";
+                }
+                AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(MainActivity.this);
+                alertDialogBuilder.setMessage("TOP SCORES:\n" + output);
+                AlertDialog alertDialog = alertDialogBuilder.create();
+                alertDialog.show();
             }
         });
 
