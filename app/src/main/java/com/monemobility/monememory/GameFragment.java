@@ -2,8 +2,10 @@ package com.monemobility.monememory;
 
 import static android.widget.ImageView.ScaleType.CENTER_INSIDE;
 
+import android.app.AlertDialog;
 import android.content.Context;
-import android.content.Intent;
+import android.content.DialogInterface;
+import android.content.SharedPreferences;
 import android.content.res.Configuration;
 import android.os.Bundle;
 
@@ -15,12 +17,18 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.Map;
 
 /**
  * A simple {@link Fragment} subclass.
@@ -45,8 +53,12 @@ public class GameFragment extends Fragment {
     TextView scoreText;
     boolean revealed;
     boolean flag;
-    int fragScore = 1;
+    int fragScore = 0;
     private int g = 1;
+
+    public static String userName;
+    private int hs1, hs2, hs3;
+    public String[] hsNames = new String[3];
 
 
     // TODO: Rename and change types of parameters
@@ -110,6 +122,7 @@ public class GameFragment extends Fragment {
                 }
             }
         }
+        Toast.makeText(getContext(), "Press on the Score to see the highscores for this game.", Toast.LENGTH_SHORT).show();
     }
 
     @Override
@@ -220,29 +233,26 @@ public class GameFragment extends Fragment {
                                     }
                                 }, 1000);
                             } else if (secondCard != firstCard && !((finalM == fcx2) && (finalN == fcy2))) {
-                                fragScore -= 1;
-                                if(fragScore == 0) {
-                                    revealCards(false);
-                                } else {
-                                    Log.i("STATE","!eq");
-                                    Handler handler = new Handler();
+                                if(fragScore > 0) {
+                                    fragScore -= 1;
+                                }
+                                Log.i("STATE","!eq");
+                                Handler handler = new Handler();
 
-                                    handler.postDelayed(new Runnable() {
-                                        @Override
-                                        public void run() {
-                                            isCorrectS[finalM][finalN] = "false";
-                                            isCorrectS[fcx2][fcy2] = "false";
-                                            im[finalM][finalN].setImageResource(R.drawable.ic_go);
-                                            im[fcx2][fcy2].setImageResource(R.drawable.ic_go);
-                                            im[fcx2][fcy2].setEnabled(true);
-                                            im[finalM][finalN].setEnabled(true);
-                                            //disable buttons until timer is done...
-                                        }
-                                    }, 1000);
+                                handler.postDelayed(new Runnable() {
+                                    @Override
+                                    public void run() {
+                                        isCorrectS[finalM][finalN] = "false";
+                                        isCorrectS[fcx2][fcy2] = "false";
+                                        im[finalM][finalN].setImageResource(R.drawable.ic_go);
+                                        im[fcx2][fcy2].setImageResource(R.drawable.ic_go);
+                                        im[fcx2][fcy2].setEnabled(true);
+                                        im[finalM][finalN].setEnabled(true);
+                                        //disable buttons until timer is done...
+                                    }
+                                }, 1000);
                                     scoreText = (TextView) getActivity().findViewById(R.id.scoreText);
                                     scoreText.setText("SCORE: " + fragScore);
-                                }
-
                             }
                         }
 
@@ -323,16 +333,122 @@ public class GameFragment extends Fragment {
             }
         }
         String[][] solution = new String[m_max][n_max];
-
+        int finalScore = 0;
         if(Arrays.deepEquals(answerKey,isCorrectS)) {
             TextView textview = (TextView) getActivity().findViewById(R.id.scoreText);
             textview.setText("WIN");
             gameOver = true;
-        }
+            finalScore = fragScore;
 
-        //BELOW IS WHERE THE CODE FOR SCORE STORAGE CAN GO...
+            loadData();
+            if(fragScore > hs3) {
+                requestHighscore();
+            } else {
+                displayEndPopup();
+                for(String s: hsNames) {
+                    System.out.println(s);
+                }
+            }
 
+        } // end deepEquals
     }
+
+    private void logName() {
+        if(fragScore > hs1) {
+            String temp = hsNames[0];
+            hsNames[0] = userName;
+            String temp2 = hsNames[1];
+            hsNames[1] = temp;
+            hsNames[2] = temp2;
+        }
+        if(fragScore > hs2) {
+            String temp = hsNames[1];
+            hsNames[1] = userName;
+            hsNames[2] = temp;
+        }
+        if(fragScore > hs3) {
+            hsNames[2] = userName;
+        }
+    }
+
+    private void saveData() {
+        int finalScore = fragScore;
+        SharedPreferences sharedPreferences = getActivity().getSharedPreferences(getSharedPrefs(numOfCards), Context.MODE_PRIVATE);
+        SharedPreferences.Editor editor = sharedPreferences.edit();
+        editor.putInt(userName, finalScore);
+        editor.apply();
+    }
+
+    private void loadData() {
+        SharedPreferences sharedPreferences = getActivity().getSharedPreferences(getSharedPrefs(numOfCards), Context.MODE_PRIVATE);
+        hs1 = sharedPreferences.getInt("hs1", 0);
+        hs2 = sharedPreferences.getInt("hs2", 0);
+        hs3 = sharedPreferences.getInt("hs3", 0);
+    }
+
+    private String getSharedPrefs(int n) {
+        n = numOfCards;
+        if(n == 4) {
+            return "sharedPrefs4";
+        }
+        if(n == 6) {
+            return "sharedPrefs6";
+        }
+        if(n == 8) {
+            return "sharedPrefs8";
+        }
+        if(n == 10) {
+            return "sharedPrefs10";
+        }
+        if(n == 12) {
+            return "sharedPrefs12";
+        }
+        if(n == 14) {
+            return "sharedPrefs14";
+        }
+        if(n == 16) {
+            return "sharedPrefs16";
+        }
+        if(n == 18) {
+            return "sharedPrefs18";
+        }
+        if(n == 20) {
+            return "sharedPrefs20";
+        }
+        return"";
+    }
+
+    private void requestHighscore() {
+        AlertDialog.Builder alert = new AlertDialog.Builder(getContext());
+        alert.setMessage("Please enter your initials");
+        final EditText input = new EditText(getContext());
+        alert.setView(input);
+        alert.setPositiveButton("Add", new DialogInterface.OnClickListener() {
+            public void onClick(DialogInterface dialog, int whichButton) {
+                userName = input.getText().toString();
+                logName();
+                saveData();
+            }
+        });
+        alert.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+            public void onClick(DialogInterface dialog, int whichButton) {
+                dialog.cancel();
+            }
+        });
+        alert.show();
+    }
+
+    private void displayEndPopup() {
+        AlertDialog.Builder alert = new AlertDialog.Builder(getContext());
+        alert.setMessage("GAME OVER!\n" + "Score: " + fragScore);
+        alert.setNegativeButton("End", new DialogInterface.OnClickListener() {
+            public void onClick(DialogInterface dialog, int whichButton) {
+                dialog.cancel();
+            }
+        });
+        alert.show();
+    }
+
 
     private void disableButtons() {
         for(int i = 0; i < m_max; i++) {
