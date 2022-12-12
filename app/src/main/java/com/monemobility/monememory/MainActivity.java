@@ -4,14 +4,31 @@ import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 
 import android.app.AlertDialog;
+import android.app.Dialog;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.util.Log;
+import android.util.Pair;
+import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.SeekBar;
+import android.widget.TextView;
+import android.widget.Toast;
+
+import org.json.JSONArray;
+
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import java.util.TreeMap;
 
 public class MainActivity extends AppCompatActivity {
     int length;
@@ -25,11 +42,16 @@ public class MainActivity extends AppCompatActivity {
     Button scoreButton;
     SeekBar difficultyBar;
     GameFragment gameFragment;
-    public int playerScore = 1;
+    public int playerScore = 0;
     Boolean musicState;
     ImageView[][] IVArray= new ImageView[length][width];
 
     Button muteButton;
+
+    int lastScore, hs1, hs2, hs3;
+
+    public static final String SHARED_PREFS = "sharedPrefs";
+    public static final String SCORE = "4";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -82,27 +104,28 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
+
         scoreButton = this.findViewById(R.id.scoreText);
         scoreButton.setOnClickListener(new View.OnClickListener() {
+            String output = "";
             @Override
             public void onClick(View view) {
-
+                AlertDialog.Builder scoreAlert = new AlertDialog.Builder((MainActivity.this));
+                scoreAlert.setView(loadScores());
+                scoreAlert.setPositiveButton("Clear", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialogInterface, int i) {
+                        SharedPreferences sharedPreferences = getSharedPreferences(getSharedPrefs(difficulty), MODE_PRIVATE);
+                        SharedPreferences.Editor editor = sharedPreferences.edit();
+                        editor.clear();
+                        editor.apply();
+                        Toast.makeText(MainActivity.this, "High scores for this game have been cleared.", Toast.LENGTH_SHORT).show();
+                    }
+                });
+                scoreAlert.show();
             }
         });
 
-
-        /*
-        Bundle bundle = new Bundle();
-        bundle.putString("edttext", Integer.toString(4));
-        // set Fragmentclass Arguments
-        gameFragment = new GameFragment();
-        gameFragment.setArguments(bundle);
-
-        getSupportFragmentManager().beginTransaction()
-                .replace(R.id.game_container, gameFragment)
-                .addToBackStack(GameFragment.class.getName()).commit();
-
-*/
         if (savedInstanceState == null) {
             Bundle bundle = new Bundle();
             bundle.putString("edttext", Integer.toString(4));
@@ -114,13 +137,92 @@ public class MainActivity extends AppCompatActivity {
                     .addToBackStack(GameFragment.class.getName()).commit();
 
         }
-
+        Toast.makeText(this, "Press on the Score to see the high scores for this game.", Toast.LENGTH_SHORT).show();
     }
+
+
+    public TextView loadScores() {
+        SharedPreferences sharedPreferences = getSharedPreferences(getSharedPrefs(difficulty), MODE_PRIVATE);
+        lastScore = sharedPreferences.getInt(GameFragment.userName, 0);
+        hs1 = sharedPreferences.getInt("hs1", 0);
+        hs2 = sharedPreferences.getInt("hs2", 0);
+        hs3 = sharedPreferences.getInt("hs3", 0);
+
+        if(lastScore > hs3) {
+            hs3 = lastScore;
+            SharedPreferences.Editor editor = sharedPreferences.edit();
+            editor.putInt("hs3", hs3);
+            editor.apply();
+        }
+        if(lastScore > hs2) {
+            int temp = hs2;
+            hs2 = lastScore;
+            hs3 = temp;
+            SharedPreferences.Editor editor = sharedPreferences.edit();
+            editor.putInt("hs3", hs3);
+            editor.putInt("hs2", hs2);
+            editor.apply();
+        }
+        if(lastScore > hs1) {
+            int temp = hs1;
+            hs1 = lastScore;
+            hs2 = temp;
+            SharedPreferences.Editor editor = sharedPreferences.edit();
+            editor.putInt("hs2", hs2);
+            editor.putInt("hs1", hs1);
+            editor.apply();
+        }
+
+        TextView tv = new TextView(this);
+        tv.setText("Last Score: " + lastScore + "\n" +
+                "-------------------------" + "\n" +
+                "BEST1: \t" + hs1 + "\n" +
+                "BEST2: \t" + hs2 + "\n" +
+                "BEST3: \t" + hs3);
+        tv.setGravity(Gravity.CENTER_HORIZONTAL);
+        return tv;
+    }
+
+
+
+    private String getSharedPrefs(int n) {
+        n = difficulty;
+        if(n == 4) {
+            return "sharedPrefs4";
+        }
+        if(n == 6) {
+            return "sharedPrefs6";
+        }
+        if(n == 8) {
+            return "sharedPrefs8";
+        }
+        if(n == 10) {
+            return "sharedPrefs10";
+        }
+        if(n == 12) {
+            return "sharedPrefs12";
+        }
+        if(n == 14) {
+            return "sharedPrefs14";
+        }
+        if(n == 16) {
+            return "sharedPrefs16";
+        }
+        if(n == 18) {
+            return "sharedPrefs18";
+        }
+        if(n == 20) {
+            return "sharedPrefs20";
+        }
+        return"";
+    }
+
+
     @Override
     protected void onDestroy() {
-            super.onDestroy();
-            Intent intent = new Intent(getApplicationContext(), BackgroundMusicService.class);
-            //stopService(intent);
+        super.onDestroy();
+        Intent intent = new Intent(getApplicationContext(), BackgroundMusicService.class);
+        //stopService(intent);
     }
 
     @Override
@@ -235,4 +337,3 @@ public class MainActivity extends AppCompatActivity {
 
 
 }
-
